@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "XFeedSearch",
+  "version": "1.0",
+  "description": "Adds a 'Search in feed' feature to X which lets you search your timeline with a Pause/Resume function.",
+  "permissions": ["storage", "activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  }
+}
