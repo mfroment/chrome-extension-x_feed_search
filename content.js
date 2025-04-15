@@ -214,7 +214,7 @@
     }
     if (!found) {
       // If no match is found, continue scrolling.
-      window.scrollBy(0, window.innerHeight * 5);
+      window.scrollBy(0, window.innerHeight * 2);
       setTimeout(() => {
         resumeFromElement = getFocusedTweet();
       }, 100);
