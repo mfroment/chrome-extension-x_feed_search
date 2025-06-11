@@ -7,6 +7,29 @@
   let resumeFromElement = null;
   let debounceTimeout = null;
 
+  // 0. Check if the current path is allowed
+  function isAllowedPath(pathname) {
+    const allowedPaths = ['/home', '/i/bookmarks', '/notifications', '/notifications/mentions', '/notifications/verified'];
+    if (allowedPaths.includes(pathname)) return true;
+
+    // Detect if on current user's profile via "Profile" link
+    const profileLink = document.querySelector('a[aria-label="Profile"][href^="/"]');
+    if (profileLink && profileLink.getAttribute('href') === pathname) return true;
+
+    // Detect if on someone else's profile via canonical link
+    const canonicalLink = document.querySelector('link[rel="canonical"][href^="https://x.com"]');
+    if (canonicalLink) {
+      try {
+        const canonicalPath = new URL(canonicalLink.href).pathname;
+        if (canonicalPath === pathname) return true;
+      } catch (e) {
+        console.warn('[XFeedSearch] Error parsing canonical link href:', e);
+      }
+    }
+
+    return false;
+  }
+
   // 1. Insert a custom style rule for the custom height override
   function insertCustomHeightStyle() {
     const styleEl = document.createElement('style');
@@ -35,6 +58,10 @@
 
   // 2. Wait for the native search form to be present
   function waitForNativeSearch() {
+    if (!isAllowedPath(location.pathname)) {
+      console.log('[XFeedSearch] Current path not eligible. Skipping.');
+      return;
+    }
     const nativeSearchForm = document.querySelector('form[aria-label="Search"]');
     if (nativeSearchForm) {
       insertCustomHeightStyle();
