@@ -12,19 +12,12 @@
     const allowedPaths = ['/home', '/i/bookmarks', '/notifications', '/notifications/mentions', '/notifications/verified'];
     if (allowedPaths.includes(pathname)) return true;
 
-    // Detect if on current user's profile via "Profile" link
-    const profileLink = document.querySelector('a[aria-label="Profile"][href^="/"]');
-    if (profileLink && profileLink.getAttribute('href') === pathname) return true;
-
-    // Detect if on someone else's profile via canonical link
-    const canonicalLink = document.querySelector('link[rel="canonical"][href^="https://x.com"]');
-    if (canonicalLink) {
-      try {
-        const canonicalPath = new URL(canonicalLink.href).pathname;
-        if (canonicalPath === pathname) return true;
-      } catch (e) {
-        console.warn('[XFeedSearch] Error parsing canonical link href:', e);
-      }
+    // Detect if on a user profile via <title> metadata
+    const title = document.title;
+    const match = title.match(/\(@([^\)]+)\) \/ X$/);
+    if (match) {
+      const username = match[1];
+      if (pathname === `/${username}`) return true;
     }
 
     return false;
