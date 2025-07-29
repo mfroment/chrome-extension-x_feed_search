@@ -6,6 +6,7 @@
   let timerID = null;
   let resumeFromElement = null;
   let debounceTimeout = null;
+  let tweetsScanned = 0;
 
   // 0. Check if the current path is allowed
   function isAllowedPath(pathname) {
@@ -153,21 +154,22 @@
   // 7. Toggle search logic (start, pause, resume) upon button click.
   function handleSearch(input, button) {
     if (!paused && !timerID) {
+      tweetsScanned = 0;
       searchQuery = input.value.trim();
       if (!searchQuery) {
         alert('Please enter a search term.');
         return;
       }
-      button.textContent = 'Pause';
+      updateButtonLabel(button, 'Pause')
       startSearching();
     } else if (timerID) {
       clearInterval(timerID);
       timerID = null;
-      button.textContent = 'Resume';
+      updateButtonLabel(button, 'Resume')
       paused = true;
     } else {
       searchQuery = input.value.trim();
-      button.textContent = 'Pause';
+      updateButtonLabel(button, 'Pause')
       paused = false;
       startSearching();
     }
@@ -200,6 +202,7 @@
     const tweets = document.querySelectorAll('[data-testid="tweet"]');
     let found = false;
     let startProcessing = !resumeFromElement;
+
     for (const tweet of tweets) {
       if (!startProcessing) {
         if (resumeFromElement && tweet.isSameNode(resumeFromElement)) {
@@ -207,6 +210,11 @@
         }
         continue;
       }
+
+      tweetsScanned++;
+      const feedButton = document.querySelector('form[aria-label="Search in feed"] button.xfeedsearch-btn');
+      if (feedButton) updateButtonLabel(feedButton, 'Pause');
+
       const textContent = tweet.innerText || '';
       if (textContent.toLowerCase().includes(searchQuery.toLowerCase())) {
         tweet.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -218,17 +226,21 @@
         timerID = null;
         found = true;
 
-        const feedButton = document.querySelector('form[aria-label="Search in feed"] button.xfeedsearch-btn');
-        if (feedButton) feedButton.textContent = 'Search';
+        if (feedButton) updateButtonLabel(feedButton, 'Search');
         break;
       }
     }
+
     if (!found) {
       window.scrollBy(0, window.innerHeight * 2);
       setTimeout(() => {
         resumeFromElement = getFocusedTweet();
       }, 100);
     }
+  }
+
+  function updateButtonLabel(button, baseLabel) {
+    button.textContent = `${baseLabel} (${tweetsScanned})`;
   }
 
   function highlightTweet(tweet, query) {
