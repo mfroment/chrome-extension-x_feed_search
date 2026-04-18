@@ -116,10 +116,6 @@
   function insertCustomHeightStyle() {
     const styleEl = document.createElement('style');
     styleEl.innerHTML = `
-      .xfeedsearch-custom-height {
-        height: 130px !important;
-        min-height: 130px !important;
-      }
       .xfeedsearch-btn {
         background-color: #1D9BF0;
         color: #fff;
@@ -210,8 +206,9 @@
     nativeSearchForm.insertAdjacentElement('afterend', wrapper);
     console.log('[XFeedSearch v2] Cloned Search in feed form inserted.');
 
-    // 4. Find the five-level ancestor of the inserted form and apply custom height,
-    // and also apply it to that element's next sibling.
+    // 4. Find the five-level ancestor of the inserted form and expand its height
+    // to accommodate the extra search bar. We read the current height and add the
+    // height of the cloned form + margin. Same for the next sibling (spacer element).
     const searchFeedForm = document.querySelector('form[aria-label="Search in feed"]');
     if (searchFeedForm) {
       let ancestor = searchFeedForm;
@@ -220,12 +217,22 @@
           ancestor = ancestor.parentElement;
         }
       }
-      ancestor.classList.add('xfeedsearch-custom-height');
-      console.log('[XFeedSearch v2] Applied custom height class to ancestor:', ancestor);
+
+      const extraHeight = wrapper.offsetHeight || 60;
+
+      const expandElement = (el) => {
+        const current = el.getBoundingClientRect().height ||
+                        parseFloat(getComputedStyle(el).height) || 0;
+        el.style.setProperty('height', (current + extraHeight) + 'px', 'important');
+        el.style.setProperty('min-height', (current + extraHeight) + 'px', 'important');
+      };
+
+      expandElement(ancestor);
+      console.log('[XFeedSearch v2] Expanded ancestor height by ' + extraHeight + 'px:', ancestor);
 
       if (ancestor.nextElementSibling) {
-        ancestor.nextElementSibling.classList.add('xfeedsearch-custom-height');
-        console.log('[XFeedSearch v2] Applied custom height class to ancestor’s next sibling:', ancestor.nextElementSibling);
+        expandElement(ancestor.nextElementSibling);
+        console.log('[XFeedSearch v2] Expanded sibling height by ' + extraHeight + 'px:', ancestor.nextElementSibling);
       }
     } else {
       console.error('[XFeedSearch v2] Could not find inserted Search in feed form for height override.');
